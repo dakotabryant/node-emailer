@@ -7,7 +7,15 @@ const morgan = require('morgan');
 // are automatically loaded.
 require('dotenv').config();
 
+//Grabs the environment variables from the env file, and assigns them to each value
+const {ALERT_FROM_EMAIL, ALERT_FROM_NAME, ALERT_TO_EMAIL} = process.env;
+
+//Pulling in our send email function from emailer.js
+const {sendEmail} = require('./emailer');
+
+//pulling in logger
 const {logger} = require('./utilities/logger');
+
 // these are custom errors we've created
 const {FooError, BarError, BizzError} = require('./errors');
 
@@ -21,15 +29,26 @@ const russianRoulette = (req, res) => {
     Math.floor(Math.random() * errors.length)]('It blew up!');
 };
 
-
 app.use(morgan('common', {stream: logger.stream}));
+
 
 // for any GET request, we'll run our `russianRoulette` function
 app.get('*', russianRoulette);
 
-// YOUR MIDDLEWARE FUNCTION should be activated here using
-// `app.use()`. It needs to come BEFORE the `app.use` call
-// below, which sends a 500 and error message to the client
+function sendEmailAlerts(err,req,res,next) {
+  if (err instanceof FooError || err instanceof BarError) {
+    logger.info(`I just sent an email detailing the error to ${ALERT_TO_EMAIL}`);
+    const emailInfo = {
+      from: ALERT_FROM_EMAIL,
+      to: ALERT_TO_EMAIL,
+      subject: `I found some errors. Here it is: ${err.name}`,
+      text: `Here's what happened: ${err.stack}`
+    };
+  sendEmail(emailInfo);
+  }
+  next();
+}
+app.use(sendEmailAlerts);
 
 app.use((err, req, res, next) => {
   logger.error(err);
