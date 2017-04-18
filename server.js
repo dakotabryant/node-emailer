@@ -3,8 +3,7 @@
 const express = require('express');
 const morgan = require('morgan');
 // this will load our .env file if we're
-// running locally. On Gomix, .env files
-// are automatically loaded.
+// running locally. 
 require('dotenv').config();
 
 //Grabs the environment variables from the env file, and assigns them to each value
@@ -25,8 +24,7 @@ const app = express();
 // `BarError`, or `BizzError`
 const russianRoulette = (req, res) => {
   const errors = [FooError, BarError, BizzError];
-  throw new errors[
-    Math.floor(Math.random() * errors.length)]('It blew up!');
+  throw new errors[Math.floor(Math.random() * errors.length)] ('It blew up!');
 };
 
 app.use(morgan('common', {stream: logger.stream}));
